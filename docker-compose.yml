@@ -1,0 +1,52 @@
+version: '3.8'
+
+# ============================================================
+# 本地开发环境：MySQL + RocketMQ
+#
+# 启动：docker compose up -d
+# 停止：docker compose down
+#
+# WSL2 注意：若 RocketMQ 连接失败，执行以下命令获取 WSL2 IP，
+#   然后修改 application.yml 中的 rocketmq.name-server 为该 IP：
+#   hostname -I | awk '{print $1}'
+# ============================================================
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: outbox-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      # 同时创建两个库，订单服务和仓储服务各用一个
+      MYSQL_DATABASE: order_db
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 初始化时额外创建 warehouse_db
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.0
+    container_name: outbox-namesrv
+    ports:
+      - "9876:9876"
+    command: sh mqnamesrv
+
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.0
+    container_name: outbox-broker
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+    environment:
+      JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms256m -Xmx256m -Xmn128m"
+    # autoCreateTopicEnable=true 允许 demo 自动建 Topic，生产环境应关闭
+    command: sh mqbroker -n rocketmq-namesrv:9876 autoCreateTopicEnable=true
+    depends_on:
+      - rocketmq-namesrv
+
+volumes:
+  mysql_data:

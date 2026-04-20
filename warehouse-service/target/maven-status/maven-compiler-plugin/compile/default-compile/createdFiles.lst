@@ -1,0 +1,12 @@
+com/example/warehouse/dto/OrderCreatedEvent.class
+com/example/warehouse/config/WarehouseConfig.class
+com/example/warehouse/service/ShipmentService.class
+com/example/warehouse/domain/Shipment.class
+com/example/warehouse/service/IdempotentService.class
+com/example/warehouse/consumer/ShipmentConsumer.class
+com/example/warehouse/config/CorsConfig.class
+com/example/warehouse/repository/IdempotentRecordRepository.class
+com/example/warehouse/domain/IdempotentRecord.class
+com/example/warehouse/WarehouseServiceApplication.class
+com/example/warehouse/controller/ShipmentController.class
+com/example/warehouse/repository/ShipmentRepository.class

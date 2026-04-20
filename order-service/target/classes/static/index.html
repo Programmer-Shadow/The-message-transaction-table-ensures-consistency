@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Outbox Pattern Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .status-PENDING    { background: #fff3cd; color: #856404; }
+        .status-PROCESSING { background: #cfe2ff; color: #084298; }
+        .status-SENT       { background: #d1e7dd; color: #0a3622; }
+        .status-FAILED     { background: #f8d7da; color: #842029; }
+        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .flow-arrow { font-size: 20px; color: #6c757d; margin: 0 8px; }
+        .flow-box { border: 1px solid #dee2e6; border-radius: 6px; padding: 8px 14px; font-size: 13px; }
+        .highlight { background: #fffacd; border: 1px dashed #f0ad4e; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container-fluid py-3">
+
+    <h5 class="mb-1">本地消息事务（Transactional Outbox Pattern）演示</h5>
+
+    <!-- 流程说明 -->
+    <div class="d-flex align-items-center mb-3 p-2 bg-white rounded border">
+        <span class="flow-box">① 下单请求</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-box highlight">② 写orders + 写outbox<br><small>【同一DB事务】</small></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-box">③ Scheduler轮询<br><small>(每3秒)</small></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-box">④ 发送RocketMQ</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-box">⑤ 仓储消费<br><small>+幂等校验</small></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-box">⑥ 创建发货单</span>
+        <span class="ms-3 text-muted" style="font-size:12px">页面每 <b>2秒</b> 自动刷新</span>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- 左列：下单 + 库存 -->
+        <div class="col-md-3">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">下单</div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label small">用户ID</label>
+                        <input type="number" id="userId" class="form-control form-control-sm" value="1001">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">商品ID</label>
+                        <select id="productId" class="form-select form-select-sm">
+                            <option value="1001">商品1001</option>
+                            <option value="1002">商品1002</option>
+                            <option value="1003">商品1003</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">数量</label>
+                        <input type="number" id="quantity" class="form-control form-control-sm" value="1" min="1">
+                    </div>
+                    <button class="btn btn-primary btn-sm w-100" onclick="placeOrder()">提交订单</button>
+                    <div id="orderResult" class="mt-2 small"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header fw-bold">库存状态</div>
+                <div class="card-body p-2">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light"><tr><th>商品ID</th><th>可用库存</th></tr></thead>
+                        <tbody id="inventoryTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中列：Outbox 消息追踪（核心学习点） -->
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header fw-bold">
+                    Outbox 消息状态追踪
+                    <span class="text-muted fw-normal small ms-2">——观察状态从 PENDING→SENT 的流转</span>
+                </div>
+                <div class="card-body p-2">
+                    <div class="alert alert-warning py-1 px-2 small mb-2">
+                        <b>关键点：</b> 下单后消息立即写入outbox表（PENDING），
+                        Scheduler约3秒后扫描并发送到MQ（SENT）。
+                        即使MQ故障，订单也不会丢失，等MQ恢复后自动补发。
+                    </div>
+                    <table class="table table-sm table-bordered mb-0" style="font-size:12px">
+                        <thead class="table-light">
+                            <tr><th>orderNo</th><th>状态</th><th>重试</th><th>创建时间</th></tr>
+                        </thead>
+                        <tbody id="outboxTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右列：订单 + 发货单 -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header fw-bold">最近订单</div>
+                <div class="card-body p-2">
+                    <table class="table table-sm table-bordered mb-0" style="font-size:12px">
+                        <thead class="table-light">
+                            <tr><th>orderNo</th><th>商品</th><th>数量</th><th>状态</th></tr>
+                        </thead>
+                        <tbody id="orderTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header fw-bold">
+                    发货单
+                    <span class="text-muted fw-normal small ms-2">——来自 warehouse-service:8081</span>
+                </div>
+                <div class="card-body p-2">
+                    <div class="alert alert-info py-1 px-2 small mb-2">
+                        <b>幂等保护：</b> 即使MQ重复投递同一消息，发货单也只会建一条。
+                    </div>
+                    <table class="table table-sm table-bordered mb-0" style="font-size:12px">
+                        <thead class="table-light">
+                            <tr><th>orderNo</th><th>商品</th><th>数量</th><th>状态</th></tr>
+                        </thead>
+                        <tbody id="shipmentTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const ORDER_API     = 'http://localhost:8080';
+    const WAREHOUSE_API = 'http://localhost:8081';
+
+    async function placeOrder() {
+        const body = {
+            userId:    parseInt(document.getElementById('userId').value),
+            productId: parseInt(document.getElementById('productId').value),
+            quantity:  parseInt(document.getElementById('quantity').value)
+        };
+        const el = document.getElementById('orderResult');
+        try {
+            const res = await fetch(`${ORDER_API}/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                el.innerHTML = `<span class="text-success">✓ 下单成功：${data.orderNo}</span>`;
+            } else {
+                el.innerHTML = `<span class="text-danger">✗ ${data.error}</span>`;
+            }
+        } catch(e) {
+            el.innerHTML = `<span class="text-danger">请求失败：${e.message}</span>`;
+        }
+    }
+
+    function statusBadge(status) {
+        return `<span class="status-badge status-${status}">${status}</span>`;
+    }
+
+    function shortTime(val) {
+        if (!val) return '';
+        if (Array.isArray(val)) {
+            // LocalDateTime 被序列化为数组时的降级处理
+            const [y, mo, d, h, m, s] = val;
+            return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')} ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }
+        return String(val).replace('T', ' ').substring(0, 19);
+    }
+
+    async function refresh() {
+        // 库存
+        try {
+            const inv = await (await fetch(`${ORDER_API}/demo/inventory`)).json();
+            document.getElementById('inventoryTable').innerHTML = inv.map(i =>
+                `<tr><td>${i.productId}</td><td><b>${i.availableStock}</b></td></tr>`
+            ).join('');
+        } catch(e) {}
+
+        // Outbox 消息（核心观察点）
+        try {
+            const outbox = await (await fetch(`${ORDER_API}/demo/outbox`)).json();
+            document.getElementById('outboxTable').innerHTML = outbox.map(m =>
+                `<tr>
+                    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis">${m.aggregateId}</td>
+                    <td>${statusBadge(m.status)}</td>
+                    <td>${m.retryCount}/${m.maxRetry}</td>
+                    <td>${shortTime(m.createdAt)}</td>
+                </tr>`
+            ).join('');
+        } catch(e) {}
+
+        // 订单列表
+        try {
+            const orders = await (await fetch(`${ORDER_API}/demo/orders`)).json();
+            document.getElementById('orderTable').innerHTML = orders.map(o =>
+                `<tr>
+                    <td style="max-width:90px;overflow:hidden;text-overflow:ellipsis">${o.orderNo}</td>
+                    <td>${o.productId}</td>
+                    <td>${o.quantity}</td>
+                    <td>${statusBadge(o.status)}</td>
+                </tr>`
+            ).join('');
+        } catch(e) {}
+
+        // 发货单（warehouse-service）
+        try {
+            const ships = await (await fetch(`${WAREHOUSE_API}/shipments`)).json();
+            document.getElementById('shipmentTable').innerHTML = ships.map(s =>
+                `<tr>
+                    <td style="max-width:90px;overflow:hidden;text-overflow:ellipsis">${s.orderNo}</td>
+                    <td>${s.productId}</td>
+                    <td>${s.quantity}</td>
+                    <td>${statusBadge(s.status)}</td>
+                </tr>`
+            ).join('');
+        } catch(e) {
+            document.getElementById('shipmentTable').innerHTML =
+                '<tr><td colspan="4" class="text-muted text-center">warehouse-service 未启动</td></tr>';
+        }
+    }
+
+    refresh();
+    setInterval(refresh, 2000);
+</script>
+</body>
+</html>

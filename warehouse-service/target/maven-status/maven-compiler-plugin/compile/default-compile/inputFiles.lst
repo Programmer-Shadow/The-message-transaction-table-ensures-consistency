@@ -1,0 +1,12 @@
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/config/CorsConfig.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/consumer/ShipmentConsumer.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/domain/IdempotentRecord.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/controller/ShipmentController.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/domain/Shipment.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/config/WarehouseConfig.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/repository/IdempotentRecordRepository.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/WarehouseServiceApplication.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/service/ShipmentService.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/service/IdempotentService.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/repository/ShipmentRepository.java
+/home/xiekun/claudeCode/ecommerce-outbox/warehouse-service/src/main/java/com/example/warehouse/dto/OrderCreatedEvent.java

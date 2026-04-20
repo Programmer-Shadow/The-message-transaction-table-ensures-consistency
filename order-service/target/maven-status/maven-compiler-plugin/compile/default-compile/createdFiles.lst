@@ -1,0 +1,17 @@
+com/example/order/dto/OrderCreatedEvent$OrderCreatedEventBuilder.class
+com/example/order/controller/OrderController.class
+com/example/order/domain/Order.class
+com/example/order/dto/CreateOrderRequest.class
+com/example/order/repository/InventoryRepository.class
+com/example/order/controller/DemoQueryController.class
+com/example/order/repository/OutboxMessageRepository.class
+com/example/order/repository/OrderRepository.class
+com/example/order/config/RocketMQConfig.class
+com/example/order/service/OrderService.class
+com/example/order/service/InventoryService.class
+com/example/order/service/InventoryService$InsufficientStockException.class
+com/example/order/domain/OutboxMessage.class
+com/example/order/dto/OrderCreatedEvent.class
+com/example/order/scheduler/OutboxScheduler.class
+com/example/order/OrderServiceApplication.class
+com/example/order/domain/Inventory.class

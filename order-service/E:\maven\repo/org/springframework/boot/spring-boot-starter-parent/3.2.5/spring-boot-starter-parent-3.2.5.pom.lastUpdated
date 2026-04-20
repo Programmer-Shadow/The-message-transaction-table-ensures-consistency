@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Fri Mar 27 16:22:40 CST 2026
+9b279c365d364700a96e24ab9b7609f1adf0aea8@default-mvn-mirror-https\://depend.iflytek.com/artifactory/mvn-repo/.lastUpdated=1774599760540
+9b279c365d364700a96e24ab9b7609f1adf0aea8@default-mvn-repo-https\://depend.iflytek.com/artifactory/mvn-repo/.lastUpdated=1774599760525
+https\://depend.iflytek.com/artifactory/mvn-repo/.error=Could not transfer artifact org.springframework.boot\:spring-boot-starter-parent\:pom\:3.2.5 from/to mvn-mirror (https\://depend.iflytek.com/artifactory/mvn-repo/)\: depend.iflytek.com

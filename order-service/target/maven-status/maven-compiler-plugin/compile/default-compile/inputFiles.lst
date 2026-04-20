@@ -1,0 +1,15 @@
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/config/RocketMQConfig.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/repository/OutboxMessageRepository.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/OrderServiceApplication.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/controller/DemoQueryController.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/scheduler/OutboxScheduler.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/service/InventoryService.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/service/OrderService.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/domain/Order.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/controller/OrderController.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/domain/Inventory.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/dto/OrderCreatedEvent.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/domain/OutboxMessage.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/repository/OrderRepository.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/repository/InventoryRepository.java
+/home/xiekun/claudeCode/ecommerce-outbox/order-service/src/main/java/com/example/order/dto/CreateOrderRequest.java

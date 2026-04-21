@@ -2,6 +2,9 @@ server:
   port: 8081
 
 spring:
+  output:
+    ansi:
+      enabled: always
   datasource:
     url: jdbc:mysql://localhost:3306/warehouse_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
@@ -21,4 +24,8 @@ rocketmq:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.baomidou.mybatisplus: WARN
+    org.apache.ibatis: WARN

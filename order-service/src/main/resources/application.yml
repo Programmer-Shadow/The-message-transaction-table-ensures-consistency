@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  output:
+    ansi:
+      enabled: always
   datasource:
     url: jdbc:mysql://localhost:3306/order_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
@@ -29,7 +32,11 @@ rocketmq:
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true   # order_no → orderNo 自动映射
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发期打印SQL
+
+logging:
+  level:
+    com.baomidou.mybatisplus: WARN
+    org.apache.ibatis: WARN
 
 outbox:
   scheduler:

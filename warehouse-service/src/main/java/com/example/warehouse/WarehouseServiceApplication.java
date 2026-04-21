@@ -10,5 +10,6 @@ public class WarehouseServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(WarehouseServiceApplication.class, args);
+        System.out.println("启动成功");
     }
 }
